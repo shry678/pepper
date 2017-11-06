@@ -124,9 +124,11 @@ def redirect_to_dashboard_if_authed(func):
     return decorated_view
 
 
-def send_email(from_email, subject, to_email, txt_content=None, html_content=None, from_name=None):
+def send_email(from_email, subject, to_email, txt_content=None, html_content=None, from_name=None, attachments=None):
     if not from_name:
         from_name = settings.HACKATHON_NAME
+    if not attachments:
+        attachments = []
     mail = Mail()
     mail.from_email = Email(from_email, from_name)
     personalization = Personalization()
@@ -140,6 +142,8 @@ def send_email(from_email, subject, to_email, txt_content=None, html_content=Non
         mail.add_content(Content('text/plain', txt_content))
     if html_content:
         mail.add_content(Content('text/html', transform(html_content)))
+    for attachment in attachments:
+        mail.add_attachment(attachment)
     response = sg.client.mail.send.post(request_body=mail.get())
     if response.status_code != 202:
         raise RuntimeError  # TODO: Get a proper error on this

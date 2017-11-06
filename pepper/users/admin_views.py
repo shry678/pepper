@@ -1,3 +1,4 @@
+import base64
 from collections import defaultdict
 from datetime import datetime
 
@@ -7,6 +8,7 @@ import keen
 from pytz import timezone
 import redis
 from rq.job import Job
+from sendgrid.helpers.mail import Attachment
 from sqlalchemy import and_, or_
 
 import batch
@@ -134,38 +136,36 @@ def send_email_to_users():
         return render_template('users/admin/send_email.html', users=all_users)
 
     if not request.form.get('content'):
-        flash('Please enter a message')
+        flash('Please enter a message', 'error')
         return redirect(url_for('send-email'))
     if not request.form.get('subject'):
-        flash('Please enter a subject')
+        flash('Please enter a subject', 'error')
         return redirect(url_for('send-email'))
 
-    targeted_users = []
-    user_id_set = set()
-
-    from_name = request.form.get('from_name')
-
-    statuses = request.form.getlist('status')
-    status_users = User.query.filter(or_(User.status.in_(statuses))).all() if statuses else []
     checkbox_user_ids = [int(current_user_id) for current_user_id in request.form.getlist('user_ids')]
-    checkbox_users = User.query.filter(or_(User.id.in_(checkbox_user_ids))).all() if checkbox_user_ids else []
+    targeted_users = User.query.filter(or_(User.id.in_(checkbox_user_ids))).all() if checkbox_user_ids else []
 
-    for user in status_users:
-        if user.id not in user_id_set:
-            user_id_set.add(user.id)
-            targeted_users.append(user)
-
-    for user in checkbox_users:
-        if user.id not in user_id_set:
-            user_id_set.add(user.id)
-            targeted_users.append(user)
-
-    if len(targeted_users) > 0:
+    if targeted_users:
+        from_name = request.form.get('from_name')
+        attachments = []
+        for f in request.files.getlist('attachments'):
+            if not f.filename:
+                # empty files are ignored
+                continue
+            contents = f.read()
+            encoded = base64.b64encode(contents)
+            attachment = Attachment()
+            attachment.set_content(encoded)
+            attachment.set_type(f.mimetype)
+            attachment.set_filename(f.filename)
+            attachment.set_disposition('attachment')
+            attachments.append(attachment)
         batch.send_batch_email(request.form.get('content'), request.form.get('subject'),
                                targeted_users, request.form.get('user-context') == 'TRUE',
-                               from_name=from_name)
-
-    flash('Batch email(s) successfully sent', 'success')
+                               from_name=from_name, attachments=attachments)
+        flash('Batch email(s) successfully sent', 'success')
+    else:
+        flash('No users selected', 'warning')
     return redirect(url_for('send-email'))
 
 

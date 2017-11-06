@@ -1,4 +1,8 @@
 $(document).ready(function () {
+    $('#add-attachment').click(function() {
+        $('<label>Add an attachment<input multiple type="file" name="attachments"></label>').insertBefore(this);
+        return false;
+    });
     var userTable = $('#user_table').DataTable({
         columnDefs: [{
             orderable: false,
