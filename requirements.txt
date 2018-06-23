@@ -10,7 +10,7 @@ psycopg2
 Flask-Script
 Flask-Login
 flask_sslify
-requests
+requests==2.10.0
 sendgrid
 redis
 flask-redis==0.0.6

@@ -1,11 +1,13 @@
-from pepper.app import DB, csrf
+import json
+from datetime import datetime
+
+import requests
 from flask import request, Response
+from pytz import timezone
+
 from models import Announcement
 from pepper import settings
-from datetime import datetime
-import requests
-import json
-from pytz import timezone
+from pepper.app import DB, csrf
 
 cst = timezone('US/Central')
 
@@ -27,7 +29,7 @@ def create_announcement():
     ts = datetime.fromtimestamp(float(request.form.get('timestamp')))
     from_tz = timezone('UTC')
     ts = from_tz.localize(ts).astimezone(cst)
-    if request.form.get('token') != settings.SLACK_TOKEN:
+    if token != settings.SLACK_TOKEN:
         return 'Unauthorized', 401
     send_notification = text.startswith('<!channel>')
     if send_notification:
@@ -60,6 +62,13 @@ def create_announcement():
                 "body": text
             }
         })
+
+        slack_data = {'text': text}
+
+        resp = requests.post(
+            settings.SLACK_WEBHOOK_URL, data=json.dumps(slack_data),
+            headers={'Content-Type': 'application/json'}
+        )
     # print resp.status_code
 
     # Create a POST to Firebase

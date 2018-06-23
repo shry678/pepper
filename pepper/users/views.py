@@ -1,10 +1,10 @@
-from flask import flash, g, jsonify, make_response, redirect, render_template, request, url_for
+from datetime import datetime
+
+import requests
+from flask import flash, g, jsonify, redirect, render_template, request, url_for
 from flask_login import current_user, login_required, login_user, logout_user
 from pytz import timezone
-import redis
-import requests
 from sqlalchemy.exc import DataError, IntegrityError
-from datetime import datetime
 
 import batch
 import helpers
@@ -12,10 +12,9 @@ from models import User
 from pepper import settings, status
 from pepper.app import DB
 from pepper.legal.models import Waiver
-from pepper.utils import calculate_age, get_current_user_roles, get_default_dashboard_for_role, \
-    redirect_to_dashboard_if_authed, roles_required, s3, serializer, timed_serializer, user_status_blacklist, \
+from pepper.utils import get_current_user_roles, get_default_dashboard_for_role, \
+    redirect_to_dashboard_if_authed, s3, serializer, timed_serializer, user_status_blacklist, \
     user_status_whitelist, user_extra_application_required
-
 
 tz = timezone('US/Central')
 
@@ -399,6 +398,7 @@ def extract_waiver_info(user):
     signed_info['user_id'] = user.id
     return signed_info
 
+
 @login_required
 def sign():
     if current_user.status not in [status.ADMIN, status.SIGNING]:  # they aren't allowed to accept their invitation
@@ -482,10 +482,11 @@ def accept_reimbursement():
     return redirect(url_for('additional-status'))
 
 
-@helpers.check_registration_opened
+# @helpers.check_registration_opened
 @redirect_to_dashboard_if_authed
 def login():
     if request.method == 'GET':
+        print "arrived here"
         return render_template('users/login.html', mlh_oauth_url=helpers.mlh_oauth_url)
     # handle login POST logic
     email = request.form.get('email')
@@ -641,6 +642,7 @@ def confirm_account(token):
 def view_campus_ambassadors():
     ambassadors = User.query.filter_by(is_campus_ambassador=True, status='CONFIRMED').order_by(User.school_name).all()
     return render_template('users/view_campus_ambassadors.html', ambassadors=ambassadors)
+
 
 """
 @login_required

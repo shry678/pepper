@@ -1,18 +1,19 @@
 import json
 
 import flask
+import redis
+import sendgrid
+import structlog
 from flask import g, request, render_template
 from flask_cdn import CDN
-from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager, current_user
 from flask_redis import Redis
+from flask_sqlalchemy import SQLAlchemy
 from flask_sslify import SSLify
 from flask_wtf.csrf import CSRFProtect
-import redis
 from rq import Queue
-import sendgrid
+
 import settings
-import structlog
 
 DB = SQLAlchemy()
 redis_store = Redis()
