@@ -39,6 +39,7 @@ def create_announcement():
     DB.session.commit()
 
     if send_notification:
+        # Is this an Android notification?
         resp = requests.post('https://fcm.googleapis.com/fcm/send', headers={
             "Authorization": "key={}".format(settings.FIREBASE_KEY)
         }, json={
@@ -63,6 +64,7 @@ def create_announcement():
             }
         })
 
+        # Send Slack announcement
         slack_data = {'text': text}
 
         resp = requests.post(
