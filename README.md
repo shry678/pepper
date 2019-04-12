@@ -66,7 +66,7 @@ If you change requirements: `docker-compose build`
 ## Explanation of Services
 
 HackTX is a tremendous undertaking and as a result Pepper was built from the ground up to be incredibly powerful.
-Pepper is designed to serve as the hub for your hackathon's tech stack before, during, and after the event.
+Pepper is designed to serve as the hub for your hackathon's tech stack before, during, and after the events.
 As a result, there are a number of dependencies Pepper depends on, outsourcing much of the work to 3rd parties that can accomplish the task quickly and cheaply.
 A list of external dependencies:
 - PostgreSQL: A PostgreSQL database can be scaled up to handle the expected max load and if you want quick hosting, Heroku Postgres should do the trick
